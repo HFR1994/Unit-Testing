@@ -81,7 +81,7 @@ public class TestSuite{
                 }else if (v instanceof String){
                     total.append(new Node<>(key, (String)v, Node.Type.NATIVE));
                 }else if (v instanceof Boolean){
-                    lista.append(new Node<>(key, (Boolean) v, Node.Type.NATIVE));
+                    total.append(new Node<>(key, (Boolean) v, Node.Type.NATIVE));
                 }else if (v instanceof List){
                     //noinspection unchecked
                     total.append(new Node<>(key, iterateList(key, (List<Object>) v), Node.Type.LIST));
@@ -114,7 +114,7 @@ public class TestSuite{
                 }else if (v instanceof String){
                     total.append(new Node<>(k, (String)v, Node.Type.NATIVE));
                 }else if (v instanceof Boolean){
-                    lista.append(new Node<>(k, (Boolean) v, Node.Type.NATIVE));
+                    total.append(new Node<>(k, (Boolean) v, Node.Type.NATIVE));
                 }else if (v instanceof List){
                     //noinspection unchecked
                     total.append(new Node<>(k, iterateList(k,(List<Object>) v), Node.Type.LIST));

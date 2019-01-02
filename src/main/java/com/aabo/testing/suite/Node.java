@@ -1,8 +1,6 @@
 package com.aabo.testing.suite;
 
 import javax.xml.bind.ValidationException;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 public class Node<T> {
@@ -39,7 +37,9 @@ public class Node<T> {
 
     public String getIdentifier() {return identifier;}
 
-    public T getPayload() {return payload;}
+    public T getPayload() {
+        return payload;
+    }
 
     void setNext(Node node) throws ValidationException {
         if(node == this){
@@ -109,16 +109,16 @@ public class Node<T> {
             try {
                 Node entry = current.getNext();
                 v = entry.getPayload();
-                if (v instanceof Map<?, ?>) {
+                if (entry.getType() == Type.MAP) {
                     Node next = compare.getElement(i);
-                    if(next.getType() == Type.MAP){
-                        if(!validateMap((LinkedList) next.getPayload(), ((LinkedList) v))){
+                    if (next.getType() == Type.MAP) {
+                        if (!validateMap((LinkedList) next.getPayload(), ((LinkedList) v))) {
                             return false;
                         }
-                    }else{
+                    } else {
                         throw new ValidationException("\nERROR: Incorrect value type for key \"" + key + "\" found " + next.getTypeString() + " expected Map");
                     }
-                } else if (v instanceof List) {
+                }else if (entry.getType() == Type.LIST) {
                     Node next = compare.getElement(i);
                     if(next.getType() == Type.LIST){
                         if(!validateList(key, (LinkedList) next.getPayload(), ((LinkedList) v))){
@@ -129,7 +129,7 @@ public class Node<T> {
                     }
                 } else if (v instanceof TestSuite.commons) {
                     TestSuite.commons valor = (TestSuite.commons) v;
-                    Object actual = compare.getElement(key).getPayload();
+                    Object actual = compare.getElement(i).getPayload();
                     switch (valor) {
                         case NULL:
                             if (actual != null)
@@ -145,21 +145,25 @@ public class Node<T> {
                             break;
                     }
                 } else if (v instanceof String) {
-                    if (!compare.getElement(key).equals(payload)) {
-                        Node value = compare.getElement(key);
+                    if (!compare.getElement(i).getPayload().equals(v)){
+                        Node value = compare.getElement(i);
                         if(value.getPayload() instanceof LinkedList) {
-                            throw new ValidationException("\nERROR: Incorrect value at key \"" + key + "\" in position " + i + " expected " + value.getTypeString() + " got \"" + v.toString() + "\"\n");
+                            throw new ValidationException("\nERROR: Incorrect value at key \"" + key + "\" in position " + i + " expected \"" + v.toString() + "\" got " + value.getTypeString() + "\n");
+                        }else if(value.getPayload() instanceof String){
+                            throw new ValidationException("\nERROR: Incorrect value at key \"" + key + "\" in position " + i + " expected \"" + v.toString() + "\" got \"" + value.getPayload().toString() + "\"\n");
                         }else{
-                            throw new ValidationException("\nERROR: Incorrect value at key \"" + key + "\" in position " + i + " expected " + compare.getElement(key).getPayload().toString() + " got \"" + v.toString() + "\"\n");
+                            throw new ValidationException("\nERROR: Incorrect value at key \"" + key + "\" in position " + i + " expected \"" + v.toString() + "\" got " + value.getPayload().toString() + "\n");
                         }
                     }
                 } else {
-                    if (compare.getElement(key) != payload) {
-                        Node value = compare.getElement(key);
+                    if (compare.getElement(i).getPayload() != v){
+                        Node value = compare.getElement(i);
                         if (value.getPayload() instanceof LinkedList) {
-                            throw new ValidationException("\nERROR: Incorrect value at key \"" + key + "\" in position " + i + " expected " + value.getTypeString() + " got \"" + v.toString() + "\"\n");
-                        } else {
-                            throw new ValidationException("\nERROR: Incorrect value at key \"" + key + "\" in position " + i + " expected " + compare.getElement(key).getPayload().toString() + " got \"" + v.toString() + "\"\n");
+                            throw new ValidationException("\nERROR: Incorrect value at key \"" + key + "\" in position " + i + " expected " + v.toString() + " got \"" + value.getTypeString() + "\"\n");
+                        }else if(value.getPayload() instanceof String){
+                            throw new ValidationException("\nERROR: Incorrect value at key \"" + key + "\" in position " + i + " expected " + v.toString() + " got \"" + value.getPayload().toString() + "\"\n");
+                        }else{
+                            throw new ValidationException("\nERROR: Incorrect value at key \"" + key + "\" in position " + i + " expected " + v.toString() + " got " + value.getPayload().toString() + "\n");
                         }
                     }
                 }
@@ -222,11 +226,27 @@ public class Node<T> {
                             break;
                     }
                 } else if (v instanceof String) {
-                    if (!compare.getElement(k).equals(payload))
-                        throw new ValidationException("\nERROR: Incorrect value at key \"" + k + "\" expected "+compare.getElement(k).getPayload().toString()+" got " + v.toString());
+                    if (!compare.getElement(k).getPayload().equals(v)){
+                        Node value = compare.getElement(k);
+                        if(value.getPayload() instanceof LinkedList) {
+                            throw new ValidationException("\nERROR: Incorrect value at key \"" + k + "\" expected \"" + v.toString() + "\" got " +  value.getTypeString()+ "\n");
+                        }else if(value.getPayload() instanceof String){
+                            throw new ValidationException("\nERROR: Incorrect value at key \"" + k + "\" expected \"" + v.toString() + "\" got \"" + value.getPayload().toString() + "\"\n");
+                        }else{
+                            throw new ValidationException("\nERROR: Incorrect value at key \"" + k + "\" expected \"" + v.toString() + "\" got " + value.getPayload().toString() + "\n");
+                        }
+                    }
                 } else {
-                    if (compare.getElement(k) != payload)
-                        throw new ValidationException("\nERROR: Incorrect value at key \"" + k + "\" expected "+compare.getElement(k).getPayload().toString()+" got " + v.toString());
+                    if (compare.getElement(k).getPayload() != v){
+                        Node value = compare.getElement(k);
+                        if (value.getPayload() instanceof LinkedList) {
+                            throw new ValidationException("\nERROR: Incorrect value at key \"" + k + "\" expected " + v.toString() + " got " + value.getTypeString() + "\n");
+                        } else if(value.getPayload() instanceof String){
+                            throw new ValidationException("\nERROR: Incorrect value at key \"" + k + "\" expected " + v.toString() + " got \"" + value.getPayload().toString() + "\"\n");
+                        }else{
+                            throw new ValidationException("\nERROR: Incorrect value at key \"" + k + "\" expected " + v.toString() + " got " + value.getPayload().toString() + "\n");
+                        }
+                    }
                 }
             } catch(ValidationException e) {
                 System.err.println(e.getMessage()+"\n");
