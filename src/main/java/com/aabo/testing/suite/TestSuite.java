@@ -21,11 +21,6 @@ public class TestSuite{
     }
 
     public TestSuite parseObject(String key, Object val) throws ValidationException{
-        getInstance(key, val, lista);
-        return this;
-    }
-
-    private void getInstance(String key, Object val, LinkedList lista) throws ValidationException {
         if (val instanceof Map<?,?>){
             //noinspection unchecked
             lista.append(new Node<>(key, iterateMap((Map<String, Object>) val), Node.Type.MAP));
@@ -37,12 +32,14 @@ public class TestSuite{
             lista.append(new Node<>(key, (Boolean) val, Node.Type.NATIVE));
         }else if (val instanceof List){
             //noinspection unchecked
-            lista.append(new Node<>(iterateList((List<Object>) val), Node.Type.LIST));
+            lista.append(new Node<>(key, iterateList(key, (List<Object>) val), Node.Type.LIST));
         }else if(val instanceof commons){
             lista.append(new Node<>(key, (commons) val, Node.Type.COMMONS));
         }else{
-            throw new ValidationException("EL formato de "+val+" no es soportado");
+            throw new ValidationException("\nERROR: Type of "+val+" is not supported");
         }
+
+        return this;
     }
 
     public TestSuite withString(String key, String val) throws ValidationException {
@@ -70,7 +67,7 @@ public class TestSuite{
         return this;
     }
 
-    private LinkedList iterateList(List<Object> mapa){
+    private LinkedList iterateList(String key, List<Object> mapa){
 
         LinkedList total = new LinkedList();
 
@@ -78,20 +75,20 @@ public class TestSuite{
             try {
                 if (v instanceof Map<?,?>){
                     //noinspection unchecked
-                    total.append(new Node<>(iterateMap((Map<String, Object>) v), Node.Type.MAP));
+                    total.append(new Node<>(key, iterateMap((Map<String, Object>) v), Node.Type.MAP));
                 }else if (v instanceof Number){
-                    total.append(new Node<>((Number)v, Node.Type.NATIVE));
+                    total.append(new Node<>(key, (Number)v, Node.Type.NATIVE));
                 }else if (v instanceof String){
-                    total.append(new Node<>((String)v, Node.Type.NATIVE));
+                    total.append(new Node<>(key, (String)v, Node.Type.NATIVE));
                 }else if (v instanceof Boolean){
-                    lista.append(new Node<>((Boolean) v, Node.Type.NATIVE));
+                    lista.append(new Node<>(key, (Boolean) v, Node.Type.NATIVE));
                 }else if (v instanceof List){
                     //noinspection unchecked
-                    total.append(new Node<>(iterateList((List<Object>) v), Node.Type.LIST));
+                    total.append(new Node<>(key, iterateList(key, (List<Object>) v), Node.Type.LIST));
                 }else if(v instanceof commons){
-                    total.append(new Node<>((commons)v, Node.Type.COMMONS));
+                    total.append(new Node<>(key, (commons)v, Node.Type.COMMONS));
                 }else{
-                    throw new ValidationException("EL formato de "+v+" no es soportado");
+                    throw new ValidationException("\nERROR: Type of "+v+" is not supported");
                 }
 
             } catch (ValidationException e) {
@@ -109,7 +106,23 @@ public class TestSuite{
 
         mapa.forEach((k,v) -> {
             try {
-                getInstance(k, v, total);
+                if (v instanceof Map<?,?>){
+                    //noinspection unchecked
+                    total.append(new Node<>(k, iterateMap((Map<String, Object>)v), Node.Type.MAP));
+                }else if (v instanceof Number){
+                    total.append(new Node<>(k, (Number)v, Node.Type.NATIVE));
+                }else if (v instanceof String){
+                    total.append(new Node<>(k, (String)v, Node.Type.NATIVE));
+                }else if (v instanceof Boolean){
+                    lista.append(new Node<>(k, (Boolean) v, Node.Type.NATIVE));
+                }else if (v instanceof List){
+                    //noinspection unchecked
+                    total.append(new Node<>(k, iterateList(k,(List<Object>) v), Node.Type.LIST));
+                }else if(v instanceof commons){
+                    total.append(new Node<>(k, (commons)v, Node.Type.COMMONS));
+                }else{
+                    throw new ValidationException("\nERROR: Type of "+v+" is not supported");
+                }
             } catch (ValidationException e) {
                 e.printStackTrace();
                 assert(false);
@@ -134,7 +147,7 @@ public class TestSuite{
     }
 
     public TestSuite withList(String key, List<Object> val) throws ValidationException{
-        lista.append(new Node<>(key, iterateList(val), Node.Type.LIST));
+        lista.append(new Node<>(key, iterateList(key,val), Node.Type.LIST));
         return this;
     }
 
@@ -157,8 +170,17 @@ public class TestSuite{
         StringConverter converter = new StringConverter();
         LinkedList object = converter.parser(json).getStructure();
 
-        while (object.hasNext()){
-            Node val = object.getNext();
+        while (this.getStructure().hasNext()){
+            try {
+                Node res = this.getStructure().getNext();
+                Node val = object.getElement(res.getIdentifier());
+                if (!res.equals(val)) {
+                    return false;
+                }
+            }catch(NullPointerException e){
+                System.err.println(e.getMessage());
+                return false;
+            }
         }
 
         return true;

@@ -39,9 +39,6 @@ public class StringConverter {
         JsonToken jsonToken = parser.nextToken();
 
         while(!parser.isClosed()){
-
-            System.out.println(jsonToken);
-
             switch(jsonToken){
                 case FIELD_NAME:
                     keys.push(parser.getCurrentName());

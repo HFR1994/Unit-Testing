@@ -2,19 +2,18 @@ package com.aabo.testing.suite;
 
 import javax.xml.bind.ValidationException;
 
-@SuppressWarnings("ALL")
 public class LinkedList {
 
     private Node parent;
     private Node last;
     private Node current;
     private int size;
-    private boolean end;
+    private boolean start;
 
     LinkedList() {
         parent = null;
         size = 0;
-        end = false;
+        start = true;
     }
 
     void append(Node nodo) throws ValidationException {
@@ -36,9 +35,9 @@ public class LinkedList {
             if(current.getIdentifier().equals(key)){
                 return current;
             }
-            current = parent.getNext();
+            current = current.getNext();
         }
-        throw new NullPointerException("No existe ese valor");
+        throw new NullPointerException("\nERROR: No key \"" + key + "\" found on response\n");
     }
 
     Node getElement(Integer pos){
@@ -48,10 +47,10 @@ public class LinkedList {
             if(pos == i){
                 return current;
             }
-            current = parent.getNext();
+            current = current.getNext();
             i++;
         }
-        throw new NullPointerException("No existe ese valor");
+        throw new NullPointerException("\nERROR: No position " + pos + " found on response\n");
     }
 
     public int getSize(){
@@ -59,7 +58,12 @@ public class LinkedList {
     }
 
     public boolean hasNext(){
-        if(current == null) {
+        if(start) {
+            current = parent;
+            return current != null;
+        }
+
+        if(current != null) {
             return current.getNext() != null;
         }else{
             return false;
@@ -67,14 +71,24 @@ public class LinkedList {
     }
 
     public Node getNext(){
+
+        if(start) {
+            current = parent;
+            start = false;
+            if(current != null){
+                return current;
+            }
+            else{
+                throw new NullPointerException("ERROR: End of list");
+            }
+        }
+
         if(current != null){
             current = current.getNext();
         }else{
-            current = parent;
+            throw new NullPointerException("ERROR: End of list");
         }
-        if(current == null){
-            throw new NullPointerException("End of list");
-        }
+
         return current;
     }
 
